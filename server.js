@@ -26,7 +26,8 @@ app.use(cors({
     origin: [FRONTEND_URL, VERCEL_URL, "https://brinda1161.github.io/Blogging-Website", "http://localhost:3000"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Origin'],
+    exposedHeaders: ['Set-Cookie']
 }));
 app.options('*', cors());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -39,8 +40,9 @@ app.use(session({
     resave: false,
     cookie: {
         maxAge: 1000 * 60 * 60 * 24,
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true
+        secure: true,
+        httpOnly: true,
+        sameSite: 'none'
     }
 }));
 

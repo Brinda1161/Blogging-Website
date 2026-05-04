@@ -1,0 +1,287 @@
+/* Base styles */
+:root {
+    --background-color: #17171a;
+    --text-color: #ffffff;
+    --link-color: rgba(255, 255, 255, 0.8);
+    --header-height: 70px;
+    --side-padding: 80px;
+    --dropdown-bg: #28282d;
+    /* Darker background for dropdown */
+    --dropdown-hover-bg: #3c3c42;
+    /* Hover background */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Navigation Bar --- */
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--header-height);
+    padding: 0 40px;
+}
+
+/* WordPress.com Logo/Brand */
+.logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+/* Navigation Links Group */
+.nav-links {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    /* Change from margin-right to gap/padding for better dropdown positioning */
+    margin-right: 25px;
+    position: relative;
+    /* Essential for dropdown positioning */
+}
+
+.nav-item a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 0;
+    transition: color 0.3s;
+    display: block;
+    /* Important for dropdown area */
+}
+
+.nav-item a:hover {
+    color: var(--text-color);
+}
+
+/* Dropdown arrow */
+.nav-item.dropdown>a::after {
+    content: ' ▼';
+    font-size: 8px;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* --- Dropdown Menu Styles --- */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    /* Position below the nav-item */
+    left: -15px;
+    /* Offset to align to the left side of the dropdown content */
+    min-width: 150px;
+    background-color: var(--dropdown-bg);
+    border-radius: 4px;
+    padding: 10px 0;
+    list-style: none;
+    margin: 0;
+    z-index: 1000;
+    /* Hide by default */
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.nav-item.dropdown:hover .dropdown-menu {
+    /* Show on hover */
+    display: block;
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-menu li a {
+    padding: 8px 15px;
+    display: block;
+    font-weight: 400;
+    color: var(--link-color);
+    white-space: nowrap;
+}
+
+.dropdown-menu li a:hover {
+    background-color: var(--dropdown-hover-bg);
+    color: var(--text-color);
+}
+
+/* --- End Dropdown Menu Styles --- */
+
+
+/* Right-Side Buttons Group */
+.auth-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.auth-button {
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-left: 15px;
+    text-decoration: none;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+#login {
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+}
+
+#signup {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+#signup:hover {
+    border-color: var(--text-color);
+}
+
+/* --- Hero Section (Main Content) --- */
+
+.hero-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 100px 0 100px 40px;
+    gap: 50px;
+}
+
+.hero-content {
+    flex: 1;
+    max-width: 600px;
+}
+
+.hero-section h1 {
+    font-size: 72px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.1;
+}
+
+.hero-section h3 {
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 30px;
+    color: #ccc;
+}
+
+#start-blog {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--text-color);
+    color: var(--background-color);
+    transition: opacity 0.3s;
+    margin-bottom: 10px;
+}
+
+#start-blog:hover {
+    opacity: 0.9;
+}
+
+.cta-note {
+    font-size: 14px;
+    color: #ccc;
+    margin-top: 5px;
+}
+
+/* --- Video/Image Container Styles --- */
+
+.video-container {
+    flex-shrink: 0;
+    width: 600px;
+    margin-right: 20px;
+    margin-bottom: 0;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    margin-right: -1px;
+    border: 15px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-container video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    background-color: white;
+    border: none;
+}
+
+/* Placeholder for video */
+.video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2c2c32, #1a1a1f);
+    color: #aaa;
+    font-size: 16px;
+    text-align: center;
+    padding: 20px;
+}
+
+.video-placeholder svg {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 15px;
+    fill: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .hero-section {
+        flex-direction: column;
+        padding: 60px 20px;
+        text-align: center;
+    }
+    
+    .hero-section h1 {
+        font-size: 48px;
+    }
+    
+    .video-container {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .navbar {
+        padding: 0 20px;
+    }
+    
+    .nav-links {
+        display: none; /* Hide nav links on smaller screens */
+    }
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Dashboard - High-Contrast B&W</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Blog Dashboard</h1>
+        <div class="user-info">
+            <span id="userWelcome">Welcome, Guest!</span>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/login">Login</a>
+                <a href="#" id="logoutLink">Logout</a>
+                <a href="/admin" id="adminLink" style="display: none;" class="admin-link">Admin Panel</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <form id="blogForm">
+            <h2>Add New Blog Post</h2>
+            <input type="text" name="title" id="title" placeholder="Add a compelling title..." required><br>
+            <textarea name="desc" id="desc" cols="30" rows="8"
+                placeholder="Start writing your amazing content here..." required></textarea><br>
+            <button type="button" id="submit">Publish Blog</button>
+        </form>
+
+        <h2>My Blogs</h2>
+        <div id="container"></div>
+    </div>
+
+    <div id="blogModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 class="modal-title" id="modalTitle"></h3>
+            <p class="modal-body" id="modalBody"></p>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

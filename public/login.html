@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - Blogger Website</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Log In to your Account</h2>
+
+        <div id="error" class="error-message"></div>
+
+        <!-- Remove the action and method attributes, let JS handle it -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Log In</button>
+        </form>
+
+        <div class="links">
+            <p>Don't have an account? 
+                <a href="/sign-up">Sign up</a>
+            </p>
+            <p style="margin-top: 10px;">
+                <a href="/">← Back to Home</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="js/login.js"></script>
+</body>
+</html>

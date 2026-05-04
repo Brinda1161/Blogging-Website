@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="css/userPage.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1>User Dashboard</h1>
+            <div class="nav-links">
+                <span id="userInfo">Loading...</span>
+                <a href="/">Home</a>
+                <a href="#" id="logoutLink">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="blog-form">
+            <h3 id="form-title">Create New Blog</h3>
+            <div id="message-container"></div>
+            <form id="blogForm">
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">Content:</label>
+                    <textarea id="content" rows="5" required></textarea>
+                </div>
+                <button type="submit">Create Blog</button>
+                <button type="button" id="cancel-edit" style="display: none; background: #6c757d;">Cancel</button>
+            </form>
+        </div>
+
+        <h3>My Blogs</h3>
+        <div id="blogs-container">
+            <!-- Blogs will be loaded here -->
+        </div>
+    </div>
+
+    <script src="js/user-dashboard.js"></script>
+</body>
+</html>

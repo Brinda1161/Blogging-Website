@@ -1,0 +1,366 @@
+/* --- GLOBAL & BODY STYLES (Default to White/Light Mode) --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0;
+    /* Removed padding here, added to sections for better control */
+    background-color: #f7f7f7;
+    /* Very light grey background */
+    color: #333;
+    /* Dark grey text for readability */
+}
+
+h1,
+h2 {
+    color: #111;
+}
+
+/* Adjusting main headers for visual break */
+h2 {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    padding-left: 10px;
+}
+
+/* --- HEADER STYLES (Inverted: Black BG, White Text) --- */
+.header {
+    background-color: #111;
+    /* Black background */
+    color: #fff;
+    /* White text for the whole section */
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    /* Apply padding here to space out content from edge */
+    padding: 20px 30px;
+    margin-bottom: 30px;
+    border-bottom: none;
+    /* No separator needed, color contrast is enough */
+}
+
+.header h1 {
+    color: #fff;
+    margin: 0;
+    font-size: 1.8em;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-weight: 500;
+}
+
+.nav-links a {
+    margin-left: 15px;
+    text-decoration: none;
+    color: #fff;
+    /* White links */
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #aaa;
+}
+
+.admin-link {
+    /* Admin link in high-contrast black on white */
+    background: #fff;
+    color: #111 !important;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 2px;
+    font-weight: 700;
+    border: 1px solid #fff;
+    transition: background 0.3s;
+}
+
+.admin-link:hover {
+    background: #eee;
+}
+
+/* --- MAIN CONTENT STYLES (Light BG, Dark Text) --- */
+.main-content {
+    padding: 0 30px 30px 30px;
+    /* Padding for the main dashboard content */
+}
+
+/* --- Form Styles --- */
+#blogForm {
+    background-color: #fff;
+    /* White background */
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border: 1px solid #ccc;
+}
+
+#blogForm h2 {
+    color: #111;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-top: 0;
+    padding-left: 0;
+}
+
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    box-sizing: border-box;
+    resize: vertical;
+    font-size: 16px;
+    background-color: #fff;
+    color: #333;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+    border-color: #555;
+    outline: none;
+}
+
+button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    cursor: pointer;
+    border: 1px solid #333;
+    border-radius: 2px;
+    font-weight: bold;
+    transition: background 0.3s, color 0.3s;
+}
+
+#submit {
+    background-color: #111;
+    /* Black button */
+    color: #fff;
+    /* White text */
+}
+
+#submit:hover {
+    background-color: #333;
+}
+
+/* --- Blog Container Styles (Cards) --- */
+#container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+#container div {
+    background-color: #fff;
+    /* White card background */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#container div:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+#container div h4 {
+    margin-top: 0;
+    color: #111;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+#container div .content-preview {
+    margin-bottom: 10px;
+    color: #666;
+    /* Medium grey content text */
+    line-height: 1.6;
+    white-space: pre-line;
+    max-height: 4.8em;
+    overflow: hidden;
+    position: relative;
+    font-size: 0.95em;
+}
+
+#container div .content-preview::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5em;
+    /* Fade effect from transparent to card background color */
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
+}
+
+.read-more {
+    color: #111;
+    /* Black "Read more" link */
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.read-more:hover {
+    color: #555;
+}
+
+.blog-actions {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Monochromatic Button Styling */
+.btn-delete {
+    background: #999;
+    /* Grey delete button */
+    color: #fff;
+    border: 1px solid #777;
+    padding: 8px 12px;
+    border-radius: 2px;
+    font-size: 0.9em;
+}
+
+.btn-delete:hover {
+    background: #777;
+}
+
+.btn-like,
+.btn-dislike {
+    background: #fff;
+    /* White background */
+    border: 1px solid #ccc;
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.btn-like:hover,
+.btn-dislike:hover {
+    background: #eee;
+}
+
+/* Use high contrast for 'active' state */
+.btn-like.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+}
+
+.btn-dislike.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+}
+
+.reaction-count {
+    font-size: 1em;
+    font-weight: bold;
+    color: inherit;
+}
+
+.author-info {
+    margin-top: 10px;
+    font-size: 0.85em;
+    color: #999;
+    border-top: 1px dashed #ccc;
+    padding-top: 10px;
+}
+
+/* --- MODAL STYLES (Stays Dark/High-Contrast) --- */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: #fff;
+    color: #111;
+    padding: 30px;
+    border-radius: 4px;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    position: relative;
+}
+
+.modal-title {
+    margin-top: 0;
+    color: #111;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-body {
+    white-space: pre-line;
+    line-height: 1.8;
+    color: #333;
+    font-size: 1.05em;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 2em;
+    font-weight: normal;
+    color: #444;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: #111;
+}
+
+/* Added styles for better accessibility */
+.no-blogs-message {
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    color: #777;
+    background-color: #fff;
+}
+
+.error-message {
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    color: #777;
+    background-color: #fff;
+}

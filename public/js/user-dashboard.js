@@ -8,15 +8,29 @@ async function initializeDashboard() {
         const response = await fetch(`${API_BASE}/api/auth/session`, { credentials: 'include' });
         const sessionData = await response.json();
         
-        if (!sessionData.authenticated) {
+        let user = sessionData.authenticated ? sessionData.user : null;
+        if (!user) {
+            const stored = localStorage.getItem('user');
+            if (stored) user = JSON.parse(stored);
+        }
+
+        if (!user) {
+            localStorage.removeItem('user');
             window.location.href = `${BASE_PATH}/login.html`;
             return;
         }
         
-        currentUser = sessionData.user;
+        currentUser = user;
         document.getElementById('userInfo').textContent = `Welcome, ${currentUser.username}`;
         await loadMyBlogs();
     } catch {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            currentUser = JSON.parse(stored);
+            document.getElementById('userInfo').textContent = `Welcome, ${currentUser.username}`;
+            await loadMyBlogs();
+            return;
+        }
         window.location.href = `${BASE_PATH}/login.html`;
     }
 }
@@ -152,6 +166,7 @@ async function handleLogout() {
             method: 'POST',
             credentials: 'include'
         });
+        localStorage.removeItem('user');
         window.location.href = `${BASE_PATH}/index.html`;
     } catch {
         console.error('Logout error');

@@ -36,7 +36,8 @@ form.addEventListener('submit', async (e) => {
         
         if (response.ok) {
             console.log("Login successful:", data);
-            
+            // Store user info in localStorage as fallback for session
+            localStorage.setItem('user', JSON.stringify(data.user));
             window.location.href = data.user.role === 'admin' ? '/admin.html' : '/dashboard.html';
         } else {
             const errorMessage = data.message || 

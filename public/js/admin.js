@@ -20,16 +20,36 @@ async function initializeAdminPanel() {
         if (!sessionResponse.ok) throw new Error('Not authenticated');
         
         const sessionData = await sessionResponse.json();
-        if (!sessionData.authenticated || sessionData.user.role !== 'admin') {
+        
+        // Use session data or fall back to localStorage
+        let user = sessionData.authenticated ? sessionData.user : null;
+        if (!user) {
+            const stored = localStorage.getItem('user');
+            if (stored) user = JSON.parse(stored);
+        }
+
+        if (!user || user.role !== 'admin') {
+            localStorage.removeItem('user');
             window.location.href = `${BASE_PATH}/login.html`;
             return;
         }
         
-        currentUser = sessionData.user;
+        currentUser = user;
         userWelcome.textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
         
         await Promise.all([loadBlogs(), loadUsers()]);
     } catch (error) {
+        // Try localStorage fallback
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            const user = JSON.parse(stored);
+            if (user.role === 'admin') {
+                currentUser = user;
+                userWelcome.textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
+                await Promise.all([loadBlogs(), loadUsers()]);
+                return;
+            }
+        }
         window.location.href = `${BASE_PATH}/login.html`;
     }
 }
@@ -210,6 +230,7 @@ function showMessage(message, type = 'error') {
 // Logout handler
 async function handleLogout() {
     await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    localStorage.removeItem('user');
     window.location.href = `${BASE_PATH}/login.html`;
 }
 

@@ -15,14 +15,15 @@ const reactionRoutes = require('./routes/reactions');
 const app = express();
 
 // ✅ Constants
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://bri1977.github.io";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://brinda1161.github.io";
+const VERCEL_URL = "https://blogging-website-beige-two.vercel.app";
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
-    origin: [FRONTEND_URL, "http://localhost:3000"],
+    origin: [FRONTEND_URL, VERCEL_URL, "https://brinda1161.github.io/Blogging-Website", "http://localhost:3000"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

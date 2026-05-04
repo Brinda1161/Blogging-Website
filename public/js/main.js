@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+    const BASE_PATH = '';
     // Buttons
     const loginBtn = document.querySelector("#login");
     const signupBtn = document.querySelector("#signup");
@@ -8,26 +10,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // Navigation handlers
     if (loginBtn) {
         loginBtn.addEventListener("click", () => {
-            window.location.href = "/login";
+            window.location.href = `${BASE_PATH}/login.html`;
         });
     }
 
     if (signupBtn) {
         signupBtn.addEventListener("click", () => {
-            window.location.href = "/sign-up";
+            window.location.href = `${BASE_PATH}/sign-up.html`;
         });
     }
 
     if (startBlogBtn) {
         startBlogBtn.addEventListener("click", () => {
-            window.location.href = "/sign-up";
+            window.location.href = `${BASE_PATH}/sign-up.html`;
         });
     }
 
     if (readerLink) {
         readerLink.addEventListener("click", (e) => {
             e.preventDefault();
-            window.location.href = "/reader";
+            window.location.href = `${BASE_PATH}/reader.html`;
         });
     }
 
@@ -58,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check user session on page load
     async function checkUserSession() {
         try {
-            const response = await fetch('/api/auth/session', {
+            const response = await fetch(`${API_BASE}/api/auth/session`, {
                 credentials: 'include'
             });
             
@@ -79,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const authButtons = document.querySelector('.auth-buttons');
         if (authButtons && user) {
             authButtons.innerHTML = `
-                <a href="/dashboard" class="auth-button" style="color: var(--text-color); text-decoration: none;">Dashboard</a>
+                <a href="${BASE_PATH}/dashboard.html" class="auth-button" style="color: var(--text-color); text-decoration: none;">Dashboard</a>
                 <button id="logout" class="auth-button">Logout</button>
             `;
             
@@ -93,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function handleLogout() {
         try {
-            const response = await fetch('/api/auth/logout', {
+            const response = await fetch(`${API_BASE}/api/auth/logout`, {
                 method: 'POST',
                 credentials: 'include'
             });

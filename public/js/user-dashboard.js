@@ -1,13 +1,15 @@
 let currentUser = null;
 let editingBlogId = null;
+const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+const BASE_PATH = '';
 
 async function initializeDashboard() {
     try {
-        const response = await fetch('/api/auth/session', { credentials: 'include' });
+        const response = await fetch(`${API_BASE}/api/auth/session`, { credentials: 'include' });
         const sessionData = await response.json();
         
         if (!sessionData.authenticated) {
-            window.location.href = '/login';
+            window.location.href = `${BASE_PATH}/login.html`;
             return;
         }
         
@@ -15,7 +17,7 @@ async function initializeDashboard() {
         document.getElementById('userInfo').textContent = `Welcome, ${currentUser.username}`;
         await loadMyBlogs();
     } catch {
-        window.location.href = '/login';
+        window.location.href = `${BASE_PATH}/login.html`;
     }
 }
 
@@ -28,7 +30,7 @@ document.getElementById('blogForm').addEventListener('submit', async function(e)
     if (!title || !content) return;
 
     try {
-        const url = editingBlogId ? `/api/blogs/${editingBlogId}` : '/api/blogs';
+        const url = editingBlogId ? `${API_BASE}/api/blogs/${editingBlogId}` : `${API_BASE}/api/blogs`;
         const method = editingBlogId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
@@ -63,7 +65,7 @@ document.getElementById('cancel-edit').addEventListener('click', function() {
 
 async function loadMyBlogs() {
     try {
-        const response = await fetch('/api/blogs/my-blogs', { credentials: 'include' });
+        const response = await fetch(`${API_BASE}/api/blogs/my-blogs`, { credentials: 'include' });
         const myBlogs = await response.json();
         const container = document.getElementById('blogs-container');
         
@@ -113,7 +115,7 @@ function setupEventDelegation() {
 
 async function editBlog(blogId) {
     try {
-        const response = await fetch(`/api/blogs/${blogId}`, { credentials: 'include' });
+        const response = await fetch(`${API_BASE}/api/blogs/${blogId}`, { credentials: 'include' });
         const blog = await response.json();
         
         if (blog) {
@@ -134,7 +136,7 @@ async function deleteBlog(blogId) {
     if (!confirm('Are you sure you want to delete this blog?')) return;
 
     try {
-        await fetch(`/api/blogs/${blogId}`, { 
+        await fetch(`${API_BASE}/api/blogs/${blogId}`, { 
             method: 'DELETE',
             credentials: 'include'
         });
@@ -146,11 +148,11 @@ async function deleteBlog(blogId) {
 
 async function handleLogout() {
     try {
-        await fetch('/api/auth/logout', {
+        await fetch(`${API_BASE}/api/auth/logout`, {
             method: 'POST',
             credentials: 'include'
         });
-        window.location.href = '/login';
+        window.location.href = `${BASE_PATH}/index.html`;
     } catch {
         console.error('Logout error');
     }

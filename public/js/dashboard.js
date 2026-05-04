@@ -1,6 +1,6 @@
 let currentUser = null;
 let isAdmin = false;
-const API_BASE = window.location.origin;
+const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
 
 const submitBtn = document.querySelector("#submit");
 const modal = document.getElementById("blogModal");

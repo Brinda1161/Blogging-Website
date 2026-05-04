@@ -1,3 +1,4 @@
+const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
 const form = document.getElementById('loginForm');
 const errorDiv = document.getElementById('error');
 
@@ -16,7 +17,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     try {
-        const response = await fetch("/api/auth/login", {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -36,8 +37,7 @@ form.addEventListener('submit', async (e) => {
         if (response.ok) {
             console.log("Login successful:", data);
             
-            // ✅ No localStorage needed! Redirect based on server response
-            window.location.href = data.user.role === 'admin' ? '/admin' : '/dashboard';
+            window.location.href = data.user.role === 'admin' ? '/admin.html' : '/dashboard.html';
         } else {
             const errorMessage = data.message || 
                                 data.error || 

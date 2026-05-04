@@ -2,6 +2,8 @@
 let allBlogs = [];
 let allUsers = [];
 let currentUser = null;
+const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+const BASE_PATH = '';
 
 // DOM elements
 const blogsContainer = document.getElementById('blogs-container');
@@ -14,12 +16,12 @@ const closeBtn = document.querySelector('.close-btn');
 // Check admin authentication and load data
 async function initializeAdminPanel() {
     try {
-        const sessionResponse = await fetch('/api/auth/session', { credentials: 'include' });
+        const sessionResponse = await fetch(`${API_BASE}/api/auth/session`, { credentials: 'include' });
         if (!sessionResponse.ok) throw new Error('Not authenticated');
         
         const sessionData = await sessionResponse.json();
         if (!sessionData.authenticated || sessionData.user.role !== 'admin') {
-            window.location.href = '/login';
+            window.location.href = `${BASE_PATH}/login.html`;
             return;
         }
         
@@ -28,7 +30,7 @@ async function initializeAdminPanel() {
         
         await Promise.all([loadBlogs(), loadUsers()]);
     } catch (error) {
-        window.location.href = '/login';
+        window.location.href = `${BASE_PATH}/login.html`;
     }
 }
 
@@ -46,7 +48,7 @@ function readBlog(blogId) {
 // Function to load and display all blogs
 async function loadBlogs() {
     try {
-        const response = await fetch('/api/blogs', { credentials: 'include' });
+        const response = await fetch(`${API_BASE}/api/blogs`, { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to load blogs');
         
         allBlogs = await response.json();
@@ -102,7 +104,7 @@ async function loadBlogs() {
 // Function to load and display all users
 async function loadUsers() {
     try {
-        const response = await fetch('/api/users', { credentials: 'include' });
+        const response = await fetch(`${API_BASE}/api/users`, { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to load users');
         
         allUsers = await response.json();
@@ -156,7 +158,7 @@ async function deleteBlog(blogId) {
     if (!blogId || !confirm('Are you sure you want to delete this blog?')) return;
 
     try {
-        const response = await fetch(`/api/blogs/${blogId}`, {
+        const response = await fetch(`${API_BASE}/api/blogs/${blogId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -180,7 +182,7 @@ async function deleteUser(userId) {
     if (!confirm('Are you sure you want to delete this user? All their blogs will also be deleted.')) return;
 
     try {
-        const response = await fetch(`/api/users/${userId}`, {
+        const response = await fetch(`${API_BASE}/api/users/${userId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -207,8 +209,8 @@ function showMessage(message, type = 'error') {
 
 // Logout handler
 async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-    window.location.href = '/login';
+    await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    window.location.href = `${BASE_PATH}/login.html`;
 }
 
 // Event listeners

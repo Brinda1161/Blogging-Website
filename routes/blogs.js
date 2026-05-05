@@ -33,15 +33,16 @@ router.post("/", requireAuth, async (req, res) => {
             title,
             content,
             author: req.session.user.username,
-            authorId: req.session.user.id,
+            authorId: new require('mongoose').Types.ObjectId(req.session.user.id),
             likes: 0,
             dislikes: 0
         });
 
         await newBlog.save();
-        res.status(201).json(newBlog);
+        res.status(201).json({ success: true, blog: newBlog });
     } catch (error) {
-        res.status(500).json({ error: "Server error" });
+        console.error('Create blog error:', error);
+        res.status(500).json({ error: "Server error", details: error.message });
     }
 });
 

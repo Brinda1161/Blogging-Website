@@ -1,6 +1,7 @@
 let currentUser = null;
 let isAdmin = false;
-const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
+const BASE_PATH = '';
 
 const submitBtn = document.querySelector("#submit");
 const modal = document.getElementById("blogModal");
@@ -11,7 +12,9 @@ const logoutLink = document.getElementById("logoutLink");
 
 async function fetchUserStatus() {
     try {
-        const response = await fetch(`${API_BASE}/api/auth/session`);
+        const response = await fetch(`${API_BASE}/api/auth/session`, {
+            credentials: 'include'  // ✅ was missing before
+        });
         const userData = await response.json();
 
         if (userData.authenticated && userData.user) {
@@ -20,22 +23,40 @@ async function fetchUserStatus() {
                 name: userData.user.username,
                 role: userData.user.role
             };
-            isAdmin = currentUser.role === 'admin';
+        } else {
+            // Fallback to localStorage
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                const u = JSON.parse(stored);
+                currentUser = { id: u.id, name: u.username, role: u.role };
+            }
+        }
 
+        if (currentUser) {
+            isAdmin = currentUser.role === 'admin';
             const adminLink = document.getElementById('adminLink');
-            adminLink.style.display = isAdmin ? 'inline-block' : 'none';
-            
+            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
             document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name}!`;
-            document.querySelector('a[href="/login"]').style.display = 'none';
+            const loginLink = document.querySelector('a[href="/login"]');
+            if (loginLink) loginLink.style.display = 'none';
             logoutLink.style.display = 'inline-block';
             return true;
         } else {
             document.getElementById('userWelcome').textContent = 'Welcome, Guest!';
-            document.querySelector('a[href="/login"]').style.display = 'inline-block';
             logoutLink.style.display = 'none';
             return false;
         }
     } catch {
+        // Fallback to localStorage on network error
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            const u = JSON.parse(stored);
+            currentUser = { id: u.id, name: u.username, role: u.role };
+            isAdmin = currentUser.role === 'admin';
+            document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name}!`;
+            logoutLink.style.display = 'inline-block';
+            return true;
+        }
         document.getElementById('userWelcome').textContent = 'Welcome, Guest!';
         return false;
     }
@@ -158,7 +179,7 @@ async function loadBlogs() {
         await fetchUserStatus();
         
         if (!currentUser && window.location.pathname.includes('dashboard')) {
-            container.innerHTML = '<p>Please <a href="/login">log in</a> to view dashboard.</p>';
+            container.innerHTML = `<p>Please <a href="${BASE_PATH}/login.html">log in</a> to view dashboard.</p>`;
             return;
         }
         
@@ -169,7 +190,7 @@ async function loadBlogs() {
         const response = await fetch(apiUrl, { credentials: 'include' });
         
         if (response.status === 401) {
-            container.innerHTML = '<p>Session expired. <a href="/login">Log in again</a>.</p>';
+            container.innerHTML = `<p>Session expired. <a href="${BASE_PATH}/login.html">Log in again</a>.</p>`;
             return;
         }
         
@@ -195,7 +216,8 @@ async function loadBlogs() {
 async function handleLogout() {
     try {
         await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
-        window.location.href = '/login';
+        localStorage.removeItem('user');
+        window.location.href = `${BASE_PATH}/login.html`;
     } catch (error) {
         console.error('Logout error:', error);
     }
@@ -210,10 +232,9 @@ submitBtn.addEventListener("click", async () => {
         return;
     }
 
-    // Check if user is logged in
     if (!currentUser) {
         alert("Please log in to publish a blog");
-        window.location.href = '/login';
+        window.location.href = `${BASE_PATH}/login.html`;
         return;
     }
 
@@ -224,27 +245,19 @@ submitBtn.addEventListener("click", async () => {
             credentials: 'include',
             body: JSON.stringify({ title, content })
         });
-
-        console.log('Response status:', response.status); // Add this
-        console.log('Response ok:', response.ok); // Add this
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('Server error:', errorData);
             
             if (response.status === 401) {
                 alert("Session expired. Please log in again.");
-                window.location.href = '/login';
+                window.location.href = `${BASE_PATH}/login.html`;
                 return;
             }
             
             alert(`Failed to publish blog: ${errorData.error || 'Unknown error'}`);
             return;
         }
-        
-        // Success
-        const data = await response.json();
-        console.log('Blog created:', data);
         
         document.getElementById("title").value = "";
         document.getElementById("desc").value = "";
@@ -256,6 +269,7 @@ submitBtn.addEventListener("click", async () => {
         alert("Network error. Check console for details.");
     }
 });
+
 closeBtn.addEventListener("click", () => modal.style.display = "none");
 window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
 logoutLink.addEventListener("click", (e) => {

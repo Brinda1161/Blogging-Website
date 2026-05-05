@@ -1,4 +1,4 @@
-const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
 const form = document.getElementById('loginForm');
 const errorDiv = document.getElementById('error');
 

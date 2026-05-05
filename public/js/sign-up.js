@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+    const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
     const form = document.getElementById('signup-form');
     const submitButton = document.getElementById('submit-button');
     const formMessage = document.getElementById('form-message');

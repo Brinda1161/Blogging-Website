@@ -2,7 +2,7 @@
 let allBlogs = [];
 let allUsers = [];
 let currentUser = null;
-const API_BASE = 'https://blogging-website-2-pin2.onrender.com';
+const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
 const BASE_PATH = '';
 
 // DOM elements

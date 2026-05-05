@@ -34,7 +34,8 @@ app.use(cors({
             "http://127.0.0.1:5500"
         ];
         // Allow requests with no origin (mobile apps, curl, etc.)
-        if (!origin || allowedOrigins.includes(origin)) {
+        // Also allow all vercel.app preview deployments
+        if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
             callback(null, true);
         } else {
             console.log('CORS blocked origin:', origin);

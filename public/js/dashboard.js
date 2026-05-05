@@ -23,6 +23,8 @@ function getAuthHeaders() {
     }
     return { 'Content-Type': 'application/json' };
 }
+
+async function fetchUserStatus() {
     try {
         const response = await fetch(`${API_BASE}/api/auth/session`, {
             credentials: 'include'  // ✅ was missing before

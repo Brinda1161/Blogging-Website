@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Blog = require('../models/Blog');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 
@@ -33,7 +34,7 @@ router.post("/", requireAuth, async (req, res) => {
             title,
             content,
             author: req.session.user.username,
-            authorId: new require('mongoose').Types.ObjectId(req.session.user.id),
+            authorId: new mongoose.Types.ObjectId(req.session.user.id),
             likes: 0,
             dislikes: 0
         });

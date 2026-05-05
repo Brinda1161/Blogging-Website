@@ -10,7 +10,19 @@ const modalBody = document.getElementById("modalBody");
 const closeBtn = document.querySelector(".close-btn");
 const logoutLink = document.getElementById("logoutLink");
 
-async function fetchUserStatus() {
+function getAuthHeaders() {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+        const u = JSON.parse(stored);
+        return {
+            'Content-Type': 'application/json',
+            'x-user-id': u.id,
+            'x-username': u.username,
+            'x-user-role': u.role
+        };
+    }
+    return { 'Content-Type': 'application/json' };
+}
     try {
         const response = await fetch(`${API_BASE}/api/auth/session`, {
             credentials: 'include'  // ✅ was missing before
@@ -71,7 +83,7 @@ async function handleReaction(blogId, reactionType) {
     try {
         const response = await fetch(`${API_BASE}/api/reactions/blogs/${blogId}/reaction`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             credentials: 'include',
             body: JSON.stringify({ reaction: reactionType })
         });
@@ -241,7 +253,7 @@ submitBtn.addEventListener("click", async () => {
     try {
         const response = await fetch(`${API_BASE}/api/blogs`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             credentials: 'include',
             body: JSON.stringify({ title, content })
         });

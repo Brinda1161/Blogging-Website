@@ -3,6 +3,20 @@ let editingBlogId = null;
 const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
 const BASE_PATH = '';
 
+function getAuthHeaders() {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+        const u = JSON.parse(stored);
+        return {
+            'Content-Type': 'application/json',
+            'x-user-id': u.id,
+            'x-username': u.username,
+            'x-user-role': u.role
+        };
+    }
+    return { 'Content-Type': 'application/json' };
+}
+
 async function initializeDashboard() {
     try {
         const response = await fetch(`${API_BASE}/api/auth/session`, { credentials: 'include' });
@@ -49,7 +63,7 @@ document.getElementById('blogForm').addEventListener('submit', async function(e)
 
         const response = await fetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             credentials: 'include',
             body: JSON.stringify({ title, content })
         });

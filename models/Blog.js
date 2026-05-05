@@ -38,9 +38,8 @@ const blogSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt field on save
-blogSchema.pre('save', function(next) {
+blogSchema.pre('save', async function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 module.exports = mongoose.model('Blog', blogSchema);

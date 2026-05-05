@@ -23,10 +23,27 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
-    origin: [FRONTEND_URL, VERCEL_URL, "https://brinda1161.github.io/Blogging-Website", "http://localhost:3000"],
+    origin: function(origin, callback) {
+        const allowedOrigins = [
+            FRONTEND_URL,
+            VERCEL_URL,
+            "https://brinda1161.github.io",
+            "https://brinda1161.github.io/Blogging-Website",
+            "http://localhost:3000",
+            "http://localhost:5500",
+            "http://127.0.0.1:5500"
+        ];
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log('CORS blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Origin'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Origin', 'x-user-id', 'x-username', 'x-user-role'],
     exposedHeaders: ['Set-Cookie']
 }));
 app.options('*', cors());

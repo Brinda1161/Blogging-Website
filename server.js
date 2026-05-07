@@ -15,39 +15,16 @@ const reactionRoutes = require('./routes/reactions');
 const app = express();
 
 // ✅ Constants
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://brinda1161.github.io";
-const VERCEL_URL = "https://blogging-website-beige-two.vercel.app";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://bri1977.github.io/Blogger-Website";
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
-    origin: function(origin, callback) {
-        const allowedOrigins = [
-            FRONTEND_URL,
-            VERCEL_URL,
-            "https://brinda1161.github.io",
-            "https://brinda1161.github.io/Blogging-Website",
-            "http://localhost:3000",
-            "http://localhost:5500",
-            "http://127.0.0.1:5500"
-        ];
-        // Allow requests with no origin (mobile apps, curl, etc.)
-        // Also allow all vercel.app preview deployments
-        if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-            callback(null, true);
-        } else {
-            console.log('CORS blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Origin', 'x-user-id', 'x-username', 'x-user-role'],
-    exposedHeaders: ['Set-Cookie']
+    origin: [FRONTEND_URL, "http://localhost:3000"],
+    credentials: true
 }));
-app.options('*', cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -56,21 +33,14 @@ app.use(session({
     secret: process.env.SESSION_SECRET || "secret-key",
     saveUninitialized: false,
     resave: false,
-    cookie: {
+    cookie: { 
         maxAge: 1000 * 60 * 60 * 24,
-        secure: true,
-        httpOnly: true,
-        sameSite: 'none'
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true
     }
 }));
 
-// Debug middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
-    next();
-});
-
-// Routes
+// Routes (direct mounting without the router index file for now)
 app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/users', userRoutes);
@@ -78,60 +48,44 @@ app.use('/api/reactions', reactionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'OK',
+    res.json({ 
+        status: 'OK', 
         timestamp: new Date().toISOString(),
         user: req.session.user ? 'authenticated' : 'anonymous'
     });
 });
 
-// Serve specific pages
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Serve HTML pages
+const servePage = (page) => (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+};
+
+app.get('/', servePage('index.html'));
+app.get('/login', servePage('login.html'));
+app.get('/sign-up', servePage('sign-up.html'));
+app.get('/dashboard', servePage('dashboard.html'));
+app.get('/admin', servePage('admin.html'));
+app.get('/reader', servePage('reader.html'));
+app.get('/user', servePage('userPage.html'));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-app.get('/sign-up', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'sign-up.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-app.get('/reader', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'reader.html'));
-});
-
-app.get('/user', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'userPage.html'));
-});
-
-// ✅ 404 handler for API routes
+// 404 handler for API routes
+// 404 for API routes
 app.use('/api', (req, res) => {
     res.status(404).json({ error: 'API route not found' });
 });
 
-// ✅ Frontend 404 handler (must be last)
-// app.use((req, res) => {
-//     res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-// });
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Server Error:', err);
-    res.status(500).json({ 
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+// HTML catch-all for frontend routes (SPA)
+app.get('/', (req, res) => {
+    // if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 
 // Start server
 async function startServer() {
@@ -147,5 +101,18 @@ async function startServer() {
         process.exit(1);
     }
 }
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('Shutting down gracefully...');
+    await database.disconnect();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('Shutting down gracefully...');
+    await database.disconnect();
+    process.exit(0);
+});
 
 startServer();

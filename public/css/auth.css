@@ -118,11 +118,6 @@ button:disabled {
     background: rgba(231, 76, 60, 0.1);
     border-radius: 4px;
     border: 1px solid var(--error-color);
-    display: none; /* Add this */
-}
-
-.error-message.show {
-    display: block; /* Add this */
 }
 
 .success-message {

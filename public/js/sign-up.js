@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
     const form = document.getElementById('signup-form');
     const submitButton = document.getElementById('submit-button');
     const formMessage = document.getElementById('form-message');
@@ -7,14 +6,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if user is already logged in
     async function checkExistingSession() {
         try {
-            const response = await fetch(`${API_BASE}/api/auth/session`, {
+            const response = await fetch('/api/auth/session', {
                 credentials: 'include'
             });
             
             if (response.ok) {
                 const data = await response.json();
                 if (data.authenticated) {
-                    window.location.href = data.user.role === 'admin' ? '/admin.html' : '/dashboard.html';
+                    // User is already logged in, redirect to dashboard
+                    window.location.href = data.user.role === 'admin' ? '/admin' : '/dashboard';
                 }
             }
         } catch (error) {
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 userData.email = email;
             }
 
-            const response = await fetch(`${API_BASE}/api/auth/sign-up`, {
+            const response = await fetch('/api/auth/sign-up', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json'
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect to login page after success
                 setTimeout(() => {
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                 }, 2000);
                 
             } else {

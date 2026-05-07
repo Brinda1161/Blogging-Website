@@ -6,21 +6,18 @@ router.post("/sign-up", async (req, res) => {
     try {
         const { username, password, email } = req.body;
         
+        // FIXED: Mongoose does NOT have findByUsername
         const existingUser = await User.findOne({ username });
 
         if (existingUser) {
             return res.status(409).json({ error: "User already exists" });
         }
 
-        // Check if this is the first user
-        const userCount = await User.countDocuments();
-        const isFirstUser = userCount === 0;
-
         const newUser = {
             username,
             password,
             email: email || null,
-            role: isFirstUser ? "admin" : "user", // First user becomes admin
+            role: "user",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             reactions: {},
@@ -34,9 +31,8 @@ router.post("/sign-up", async (req, res) => {
 
         res.json({ 
             success: true, 
-            message: isFirstUser ? "Admin user created successfully" : "User created successfully",
-            userId: user._id.toString(),
-            role: user.role
+            message: "User created successfully",
+            userId: user._id.toString()
         });
     } catch (error) {
         console.error('Sign-up error:', error);
@@ -44,9 +40,9 @@ router.post("/sign-up", async (req, res) => {
     }
 });
 
+
 router.post("/login", async (req, res) => {
     try {
-        console.log(req.body)
         const { username, password } = req.body;
 
         const user = await User.findOne({ username });

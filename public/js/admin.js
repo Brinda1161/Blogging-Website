@@ -2,8 +2,6 @@
 let allBlogs = [];
 let allUsers = [];
 let currentUser = null;
-const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
-const BASE_PATH = '';
 
 // DOM elements
 const blogsContainer = document.getElementById('blogs-container');
@@ -16,48 +14,48 @@ const closeBtn = document.querySelector('.close-btn');
 // Check admin authentication and load data
 async function initializeAdminPanel() {
     try {
-        const sessionResponse = await fetch(`${API_BASE}/api/auth/session`, { credentials: 'include' });
-        if (!sessionResponse.ok) throw new Error('Not authenticated');
+        // Check user session
+        const sessionResponse = await fetch('/api/auth/session', {
+            credentials: 'include'
+        });
+        
+        if (!sessionResponse.ok) {
+            throw new Error('Not authenticated');
+        }
         
         const sessionData = await sessionResponse.json();
         
-        // Use session data or fall back to localStorage
-        let user = sessionData.authenticated ? sessionData.user : null;
-        if (!user) {
-            const stored = localStorage.getItem('user');
-            if (stored) user = JSON.parse(stored);
-        }
-
-        if (!user || user.role !== 'admin') {
-            localStorage.removeItem('user');
-            window.location.href = `${BASE_PATH}/login.html`;
+        if (!sessionData.authenticated || sessionData.user.role !== 'admin') {
+            window.location.href = '/login';
             return;
         }
         
-        currentUser = user;
+        currentUser = sessionData.user;
         userWelcome.textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
         
+        // Load blogs and users
         await Promise.all([loadBlogs(), loadUsers()]);
+        
     } catch (error) {
-        // Try localStorage fallback
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            const user = JSON.parse(stored);
-            if (user.role === 'admin') {
-                currentUser = user;
-                userWelcome.textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
-                await Promise.all([loadBlogs(), loadUsers()]);
-                return;
-            }
-        }
-        window.location.href = `${BASE_PATH}/login.html`;
+        console.error('Admin panel initialization error:', error);
+        blogsContainer.innerHTML = '<div class="error-message">Access denied. Please log in as an administrator.</div>';
+        usersContainer.innerHTML = '<div class="error-message">Access denied.</div>';
+        
+        // Redirect to login after a delay
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
     }
 }
 
 // Function to open Modal and read full blog content
 function readBlog(blogId) {
     const blog = allBlogs.find(b => b._id === blogId || b.id === blogId);
-    if (!blog) return;
+    
+    if (!blog) {
+        alert('Blog content not found!');
+        return;
+    }
 
     document.getElementById('modalTitle').textContent = blog.title;
     document.getElementById('modalAuthor').textContent = `By: ${blog.author} (${new Date(blog.createdAt).toLocaleString()})`;
@@ -68,18 +66,30 @@ function readBlog(blogId) {
 // Function to load and display all blogs
 async function loadBlogs() {
     try {
-        const response = await fetch(`${API_BASE}/api/blogs`, { credentials: 'include' });
-        if (!response.ok) throw new Error('Failed to load blogs');
+        blogsContainer.innerHTML = '<div class="loading">Loading blogs...</div>';
+        
+        const response = await fetch('/api/blogs', {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('Access denied. Admin privileges required.');
+            }
+            throw new Error('Failed to load blogs');
+        }
         
         allBlogs = await response.json();
+        
         if (allBlogs.length === 0) {
             blogsContainer.innerHTML = '<div class="loading">No blogs found.</div>';
             return;
         }
 
+        // Sort blogs by creation date (newest first)
         allBlogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
-        const html = `
+        let html = `
             <table>
                 <thead>
                     <tr>
@@ -92,31 +102,33 @@ async function loadBlogs() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${allBlogs.map(blog => {
-                        const blogId = blog._id || blog.id;
-                        const likes = blog.likes || 0;
-                        const dislikes = blog.dislikes || 0;
-                        
-                        return `
-                            <tr>
-                                <td>${blog.title}</td>
-                                <td>${blog.author}</td>
-                                <td>${new Date(blog.createdAt).toLocaleString()}</td>
-                                <td>👍 ${likes}</td>
-                                <td>👎 ${dislikes}</td>
-                                <td>
-                                    <button class="btn-read" onclick="readBlog('${blogId}')">Read</button>
-                                    <button class="btn-delete" onclick="deleteBlog('${blogId}')">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
         `;
-        
+
+        allBlogs.forEach(blog => {
+            const blogId = blog._id || blog.id;
+            const likes = blog.likes || 0;
+            const dislikes = blog.dislikes || 0;
+
+            html += `
+                <tr>
+                    <td>${blog.title}</td>
+                    <td>${blog.author}</td>
+                    <td>${new Date(blog.createdAt).toLocaleString()}</td>
+                    <td>👍 ${likes}</td> 
+                    <td>👎 ${dislikes}</td> 
+                    <td>
+                        <button class="btn-read" onclick="readBlog('${blogId}')">Read</button>
+                        <button class="btn-delete" onclick="deleteBlog('${blogId}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
         blogsContainer.innerHTML = html;
+        
     } catch (error) {
+        console.error('Error loading blogs:', error);
         blogsContainer.innerHTML = `<div class="error-message">${error.message}</div>`;
     }
 }
@@ -124,16 +136,27 @@ async function loadBlogs() {
 // Function to load and display all users
 async function loadUsers() {
     try {
-        const response = await fetch(`${API_BASE}/api/users`, { credentials: 'include' });
-        if (!response.ok) throw new Error('Failed to load users');
+        usersContainer.innerHTML = '<div class="loading">Loading users...</div>';
+        
+        const response = await fetch('/api/users', {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('Access denied. Admin privileges required.');
+            }
+            throw new Error('Failed to load users');
+        }
         
         allUsers = await response.json();
+        
         if (allUsers.length === 0) {
             usersContainer.innerHTML = '<div class="loading">No users found.</div>';
             return;
         }
 
-        const html = `
+        let html = `
             <table>
                 <thead>
                     <tr>
@@ -144,75 +167,86 @@ async function loadUsers() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${allUsers.map(user => {
-                        const userId = user._id || user.id;
-                        const isCurrentUser = currentUser && userId === currentUser.id;
-                        
-                        return `
-                            <tr>
-                                <td>${user.username}</td>
-                                <td>${user.role}</td>
-                                <td>${new Date(user.createdAt).toLocaleString()}</td>
-                                <td>
-                                    <button class="btn-delete-user" 
-                                            onclick="deleteUser('${userId}')"
-                                            ${isCurrentUser ? 'disabled' : ''}>
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
         `;
-        
+
+        allUsers.forEach(user => {
+            const isCurrentUser = currentUser && user.id === currentUser.id;
+            
+            html += `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.role}</td>
+                    <td>${new Date(user.createdAt).toLocaleString()}</td>
+                    <td>
+                        <button class="btn-delete-user" 
+                                onclick="deleteUser('${user.id}')"
+                                ${isCurrentUser ? 'disabled' : ''}>
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
         usersContainer.innerHTML = html;
+        
     } catch (error) {
+        console.error('Error loading users:', error);
         usersContainer.innerHTML = `<div class="error-message">${error.message}</div>`;
     }
 }
 
 // Function to delete a blog post
 async function deleteBlog(blogId) {
-    if (!blogId || !confirm('Are you sure you want to delete this blog?')) return;
+    if (!confirm('Are you sure you want to delete this blog?')) {
+        return;
+    }
 
     try {
-        const response = await fetch(`${API_BASE}/api/blogs/${blogId}`, {
+        const response = await fetch(`/api/blogs/${blogId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
 
-        if (response.ok) {
-            await loadBlogs();
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            await loadBlogs(); // Reload the blogs list
             showMessage('Blog deleted successfully.', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to delete blog');
         }
     } catch (error) {
-        showMessage('Failed to delete blog', 'error');
+        console.error('Error deleting blog:', error);
+        showMessage(error.message, 'error');
     }
 }
 
 // Function to delete a user
 async function deleteUser(userId) {
-    if (!userId) return;
-    if (currentUser && userId === currentUser.id) {
-        showMessage('Cannot delete your own account', 'error');
+    if (!confirm('Are you sure you want to delete this user? All their blogs will also be deleted.')) {
         return;
     }
-    if (!confirm('Are you sure you want to delete this user? All their blogs will also be deleted.')) return;
 
     try {
-        const response = await fetch(`${API_BASE}/api/users/${userId}`, {
+        const response = await fetch(`/api/users/${userId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
 
-        if (response.ok) {
-            await Promise.all([loadUsers(), loadBlogs()]);
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            await loadUsers(); // Reload the users list
+            await loadBlogs(); // Reload blogs as some might have been deleted
             showMessage('User deleted successfully.', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to delete user');
         }
     } catch (error) {
-        showMessage('Failed to delete user', 'error');
+        console.error('Error deleting user:', error);
+        showMessage(error.message, 'error');
     }
 }
 
@@ -224,20 +258,48 @@ function showMessage(message, type = 'error') {
     
     document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.section'));
     
-    setTimeout(() => messageDiv.remove(), 5000);
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.parentNode.removeChild(messageDiv);
+        }
+    }, 5000);
 }
 
 // Logout handler
 async function handleLogout() {
-    await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
-    localStorage.removeItem('user');
-    window.location.href = `${BASE_PATH}/login.html`;
+    try {
+        const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            window.location.href = '/login';
+        } else {
+            alert('Error logging out');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('Error logging out');
+    }
 }
 
 // Event listeners
-closeBtn.addEventListener('click', () => modal.style.display = 'none');
-window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-logoutLink.addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
+closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+logoutLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleLogout();
+});
 
 // Initialize the admin panel when the page loads
 document.addEventListener('DOMContentLoaded', initializeAdminPanel);

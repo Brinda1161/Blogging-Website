@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const blogSchema = new mongoose.Schema({
     title: {
@@ -6,40 +6,50 @@ const blogSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+
+    slug: {
+        type: String,
+        required: true,
+        unique: true
+    },
+
     content: {
         type: String,
         required: true
     },
-    author: {
+
+    category: {
         type: String,
-        required: true
+        default: "General"
     },
-    authorId: {
+
+    tags: {
+        type: [String],
+        default: []
+    },
+
+    author: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true
     },
+
+    coverImage: {
+        type: String,
+        default: null
+    },
+
     likes: {
         type: Number,
         default: 0
     },
+
     dislikes: {
         type: Number,
         default: 0
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
     }
+}, {
+    timestamps: true
 });
 
-// Update the updatedAt field on save
-blogSchema.pre('save', async function() {
-    this.updatedAt = Date.now();
-});
-
-module.exports = mongoose.model('Blog', blogSchema);
+module.exports = mongoose.model("Blog", blogSchema);

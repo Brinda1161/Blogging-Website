@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -7,36 +7,36 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true
-    },
+
     password: {
         type: String,
         required: true
     },
+
+    email: {
+        type: String,
+        trim: true,
+        default: null
+    },
+
     role: {
         type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
+        default: "user",
+        enum: ["user", "admin"]
     },
+
     reactions: {
         type: Map,
         of: String,
         default: {}
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+
+    profile: {
+        bio: { type: String, default: "" },
+        avatar: { type: String, default: null }
     }
+}, {
+    timestamps: true // createdAt, updatedAt auto
 });
 
-// Virtual for getting user's reaction count
-userSchema.virtual('reactionCount').get(function() {
-    return this.reactions.size;
-});
-
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

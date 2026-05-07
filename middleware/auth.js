@@ -1,18 +1,10 @@
 const { ROLES } = require('../config/constants');
 
 function requireAuth(req, res, next) {
-    if (req.session.user) {
-        return next();
+    if (!req.session.user) {
+        return res.status(401).json({ error: "Authentication required" });
     }
-    // Fallback: check X-User-Id header sent by frontend
-    const userId = req.headers['x-user-id'];
-    const username = req.headers['x-username'];
-    const role = req.headers['x-user-role'];
-    if (userId && username) {
-        req.session.user = { id: userId, username, role: role || 'user' };
-        return next();
-    }
-    return res.status(401).json({ error: "Authentication required" });
+    next();
 }
 
 function requireAdmin(req, res, next) {

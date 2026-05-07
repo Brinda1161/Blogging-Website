@@ -1,7 +1,9 @@
+// --- Dynamic Blog Data and User Data ---//
+let blogs = [];
 let currentUser = null;
 let isAdmin = false;
-const API_BASE = 'https://blogging-website-1-dzzg.onrender.com';
-const BASE_PATH = '';
+
+const API_BASE = window.location.origin; // Use relative path for same origin
 
 const submitBtn = document.querySelector("#submit");
 const modal = document.getElementById("blogModal");
@@ -10,25 +12,9 @@ const modalBody = document.getElementById("modalBody");
 const closeBtn = document.querySelector(".close-btn");
 const logoutLink = document.getElementById("logoutLink");
 
-function getAuthHeaders() {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-        const u = JSON.parse(stored);
-        return {
-            'Content-Type': 'application/json',
-            'x-user-id': u.id,
-            'x-username': u.username,
-            'x-user-role': u.role
-        };
-    }
-    return { 'Content-Type': 'application/json' };
-}
-
 async function fetchUserStatus() {
     try {
-        const response = await fetch(`${API_BASE}/api/auth/session`, {
-            credentials: 'include'  // ✅ was missing before
-        });
+        const response = await fetch(`${API_BASE}/api/auth/session`);
         const userData = await response.json();
 
         if (userData.authenticated && userData.user) {
@@ -37,41 +23,30 @@ async function fetchUserStatus() {
                 name: userData.user.username,
                 role: userData.user.role
             };
-        } else {
-            // Fallback to localStorage
-            const stored = localStorage.getItem('user');
-            if (stored) {
-                const u = JSON.parse(stored);
-                currentUser = { id: u.id, name: u.username, role: u.role };
-            }
-        }
-
-        if (currentUser) {
             isAdmin = currentUser.role === 'admin';
+
             const adminLink = document.getElementById('adminLink');
-            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+            if (isAdmin) {
+                adminLink.style.display = 'inline-block';
+            }
+
             document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name}!`;
-            const loginLink = document.querySelector('a[href="/login"]');
-            if (loginLink) loginLink.style.display = 'none';
+            
+            // Show logout link, hide login link
+            document.querySelector('a[href="/login"]').style.display = 'none';
             logoutLink.style.display = 'inline-block';
+            
             return true;
         } else {
             document.getElementById('userWelcome').textContent = 'Welcome, Guest!';
+            // Show login link, hide logout link
+            document.querySelector('a[href="/login"]').style.display = 'inline-block';
             logoutLink.style.display = 'none';
             return false;
         }
-    } catch {
-        // Fallback to localStorage on network error
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            const u = JSON.parse(stored);
-            currentUser = { id: u.id, name: u.username, role: u.role };
-            isAdmin = currentUser.role === 'admin';
-            document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name}!`;
-            logoutLink.style.display = 'inline-block';
-            return true;
-        }
-        document.getElementById('userWelcome').textContent = 'Welcome, Guest!';
+    } catch (error) {
+        console.error('Error fetching user status:', error);
+        document.getElementById('userWelcome').textContent = 'Welcome, Guest (Error)!';
         return false;
     }
 }
@@ -85,155 +60,195 @@ async function handleReaction(blogId, reactionType) {
     try {
         const response = await fetch(`${API_BASE}/api/reactions/blogs/${blogId}/reaction`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ reaction: reactionType })
         });
 
         if (response.ok) {
-            loadBlogs();
+            const result = await response.json();
+            updateBlogReactionUI(blogId, result.likes, result.dislikes, result.userReaction);
+            await loadBlogs(); // Reload to get updated data
+        } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.error || 'Failed to update reaction'}`);
         }
     } catch (error) {
-        console.error('Reaction error:', error);
+        console.error('Network Error:', error);
+        alert('An error occurred while updating reaction.');
     }
 }
 
-function createBlogElement(blog) {
-    const store = document.createElement("div");
-    store.setAttribute('data-blog-id', blog._id);
+function updateBlogReactionUI(blogId, likes, dislikes, userReaction) {
+    const blogElement = document.querySelector(`[data-blog-id="${blogId}"]`);
+    if (!blogElement) return;
 
-    const title = document.createElement("h4");
-    const contentPreview = document.createElement("div");
-    contentPreview.className = "content-preview";
-    const readMore = document.createElement("a");
+    const likeBtn = blogElement.querySelector('.btn-like');
+    const dislikeBtn = blogElement.querySelector('.btn-dislike');
+    const likeCount = blogElement.querySelector('.btn-like .reaction-count');
+    const dislikeCount = blogElement.querySelector('.btn-dislike .reaction-count');
+
+    if (likeCount) likeCount.textContent = likes;
+    if (dislikeCount) dislikeCount.textContent = dislikes;
+
+    likeBtn.classList.remove('active');
+    dislikeBtn.classList.remove('active');
+
+    if (userReaction === 'like') likeBtn.classList.add('active');
+    else if (userReaction === 'dislike') dislikeBtn.classList.add('active');
+}
+
+function addBlogs(blog) {
+    let store = document.createElement("div");
+    store.setAttribute('data-blog-id', blog._id || blog.id);
+
+    let t = document.createElement("h4");
+    let u = document.createElement("div");
+    u.className = "content-preview";
+    let readMore = document.createElement("a");
     readMore.className = "read-more";
     readMore.textContent = "Read more";
 
-    title.textContent = blog.title;
-    contentPreview.textContent = blog.content;
+    t.textContent = blog.title;
+    u.textContent = blog.content;
 
-    store.appendChild(title);
-    store.appendChild(contentPreview);
+    store.appendChild(t);
+    store.appendChild(u);
     store.appendChild(readMore);
 
-    const actionsDiv = document.createElement("div");
+    let actionsDiv = document.createElement("div");
     actionsDiv.className = "blog-actions";
 
-    const likeBtn = createReactionButton('like', blog);
-    const dislikeBtn = createReactionButton('dislike', blog);
-    
-    likeBtn.onclick = () => handleReaction(blog._id, blog.userReaction === 'like' ? 'remove' : 'like');
-    dislikeBtn.onclick = () => handleReaction(blog._id, blog.userReaction === 'dislike' ? 'remove' : 'dislike');
+    // Like button
+    let likeBtn = document.createElement("button");
+    likeBtn.className = `btn-like ${blog.userReaction === 'like' ? 'active' : ''}`;
+    likeBtn.setAttribute('data-blog-id', blog._id || blog.id);
+    likeBtn.innerHTML = `<span>👍</span> <span class="reaction-count">${blog.likes || 0}</span>`;
+
+    // Dislike button
+    let dislikeBtn = document.createElement("button");
+    dislikeBtn.className = `btn-dislike ${blog.userReaction === 'dislike' ? 'active' : ''}`;
+    dislikeBtn.setAttribute('data-blog-id', blog._id || blog.id);
+    dislikeBtn.innerHTML = `<span>👎</span> <span class="reaction-count">${blog.dislikes || 0}</span>`;
+
+    likeBtn.onclick = () => {
+        const currentReaction = blog.userReaction;
+        const newReaction = currentReaction === 'like' ? 'remove' : 'like';
+        handleReaction(blog._id || blog.id, newReaction);
+    };
+
+    dislikeBtn.onclick = () => {
+        const currentReaction = blog.userReaction;
+        const newReaction = currentReaction === 'dislike' ? 'remove' : 'dislike';
+        handleReaction(blog._id || blog.id, newReaction);
+    };
 
     actionsDiv.appendChild(likeBtn);
     actionsDiv.appendChild(dislikeBtn);
 
+    // Delete button for admin or blog owner
     if (isAdmin || (currentUser && currentUser.id === blog.authorId)) {
-        actionsDiv.appendChild(createDeleteButton(blog));
+        let deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn-delete";
+        deleteBtn.textContent = isAdmin ? "Delete (Admin)" : "Delete";
+
+        deleteBtn.onclick = async () => {
+            if (confirm(`Are you sure you want to delete "${blog.title}"?`)) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/blogs/${blog._id || blog.id}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        alert(`Blog "${blog.title}" deleted successfully.`);
+                        loadBlogs();
+                    } else if (response.status === 403) {
+                        alert("Access Denied. You can only delete your own blogs.");
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Error deleting blog: ${errorData.error || response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('Network Error:', error);
+                    alert('An error occurred while communicating with the server.');
+                }
+            }
+        };
+        actionsDiv.appendChild(deleteBtn);
     }
 
     store.appendChild(actionsDiv);
 
-    const authorInfo = document.createElement("div");
+    let authorInfo = document.createElement("div");
     authorInfo.className = "author-info";
-    authorInfo.textContent = `By ${blog.author} on ${new Date(blog.createdAt).toLocaleDateString()}`;
+    authorInfo.textContent = `By ${blog.author} on ${new Date(blog.createdAt).toLocaleDateString()} at ${new Date(blog.createdAt).toLocaleTimeString()}`;
     store.appendChild(authorInfo);
+
+    document.querySelector("#container").appendChild(store);
 
     readMore.addEventListener("click", () => {
         modalTitle.textContent = blog.title;
         modalBody.textContent = blog.content;
         modal.style.display = "flex";
     });
-
-    return store;
-}
-
-function createReactionButton(type, blog) {
-    const button = document.createElement("button");
-    button.className = `btn-${type}`;
-    if (blog.userReaction === type) button.classList.add('active');
-    button.setAttribute('data-blog-id', blog._id);
-    
-    const icon = type === 'like' ? '👍' : '👎';
-    const count = type === 'like' ? blog.likes || 0 : blog.dislikes || 0;
-    
-    button.innerHTML = `<span>${icon}</span> <span class="reaction-count">${count}</span>`;
-    return button;
-}
-
-function createDeleteButton(blog) {
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn-delete";
-    deleteBtn.textContent = isAdmin ? "Delete (Admin)" : "Delete";
-
-    deleteBtn.onclick = async () => {
-        if (confirm(`Delete "${blog.title}"?`)) {
-            try {
-                const response = await fetch(`${API_BASE}/api/blogs/${blog._id}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    loadBlogs();
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-            }
-        }
-    };
-    return deleteBtn;
 }
 
 async function loadBlogs() {
     const container = document.getElementById("container");
-    container.innerHTML = 'Loading...';
+    container.innerHTML = '';
+
+    if (!currentUser) await fetchUserStatus();
+    if (!currentUser) {
+        container.innerHTML = '<p class="no-blogs-message">Please log in to view your dashboard.</p>';
+        return;
+    }
 
     try {
-        await fetchUserStatus();
+        const response = await fetch(`${API_BASE}/api/blogs/my-blogs`, {
+            credentials: 'include',
+            headers: getAuthHeaders()
+        });
         
-        if (!currentUser && window.location.pathname.includes('dashboard')) {
-            container.innerHTML = `<p>Please <a href="${BASE_PATH}/login.html">log in</a> to view dashboard.</p>`;
-            return;
-        }
-        
-        const apiUrl = window.location.pathname.includes('dashboard') 
-            ? `${API_BASE}/api/blogs/my-blogs` 
-            : `${API_BASE}/api/blogs`;
-        
-        const response = await fetch(apiUrl, { credentials: 'include' });
-        
-        if (response.status === 401) {
-            container.innerHTML = `<p>Session expired. <a href="${BASE_PATH}/login.html">Log in again</a>.</p>`;
-            return;
+        if (!response.ok) {
+            if (response.status === 401) {
+                container.innerHTML = '<p class="no-blogs-message">Please log in to view your dashboard.</p>';
+                return;
+            }
+            throw new Error('Failed to fetch blogs');
         }
         
         const blogs = await response.json();
-        container.innerHTML = '';
-        
-        if (!blogs?.length) {
-            container.innerHTML = `<p>${window.location.pathname.includes('dashboard') 
-                ? 'No blogs yet. Create your first blog!' 
-                : 'No blogs available.'}</p>`;
+
+        if (blogs.length === 0) {
+            container.innerHTML = '<p class="no-blogs-message">No blogs yet. Create your first blog!</p>';
             return;
         }
-        
-        blogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        blogs.forEach(blog => container.appendChild(createBlogElement(blog)));
-        
+
+        // Display blogs in reverse chronological order (newest first)
+        [...blogs].reverse().forEach(addBlogs);
     } catch (error) {
         console.error("Failed to load blogs:", error);
-        container.innerHTML = `<p>Failed to load blogs. <button onclick="loadBlogs()">Retry</button></p>`;
+        container.innerHTML = '<p class="error-message">Failed to load blogs from server.</p>';
+        return;
     }
 }
 
 async function handleLogout() {
     try {
-        await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
-        localStorage.removeItem('user');
-        window.location.href = `${BASE_PATH}/login.html`;
+        const response = await fetch(`${API_BASE}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            window.location.href = '/login';
+        } else {
+            alert('Error logging out');
+        }
     } catch (error) {
         console.error('Logout error:', error);
+        alert('Error logging out');
     }
 }
 
@@ -242,48 +257,37 @@ submitBtn.addEventListener("click", async () => {
     const content = document.getElementById("desc").value.trim();
 
     if (!title || !content) {
-        alert("Please fill in both fields");
-        return;
-    }
-
-    if (!currentUser) {
-        alert("Please log in to publish a blog");
-        window.location.href = `${BASE_PATH}/login.html`;
+        alert("Please fill in both title and content");
         return;
     }
 
     try {
         const response = await fetch(`${API_BASE}/api/blogs`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ title, content })
         });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            
-            if (response.status === 401) {
-                alert("Session expired. Please log in again.");
-                window.location.href = `${BASE_PATH}/login.html`;
-                return;
-            }
-            
-            alert(`Failed to publish blog: ${errorData.error || 'Unknown error'}`);
-            return;
+
+        if (response.ok) {
+            document.getElementById("title").value = "";
+            document.getElementById("desc").value = "";
+            await loadBlogs();
+            alert('Blog created successfully!');
+        } else if (response.status === 401) {
+            alert('Please log in to create a blog');
+            window.location.href = '/login';
+        } else {
+            const errorData = await response.json();
+            alert(`Error creating blog: ${errorData.error || response.statusText}`);
         }
-        
-        document.getElementById("title").value = "";
-        document.getElementById("desc").value = "";
-        alert("Blog published successfully!");
-        loadBlogs();
-        
     } catch (error) {
-        console.error('Create blog error:', error);
-        alert("Network error. Check console for details.");
+        console.error('Network Error:', error);
+        alert('An error occurred while publishing the blog.');
     }
 });
 
+// Event Listeners
 closeBtn.addEventListener("click", () => modal.style.display = "none");
 window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
 logoutLink.addEventListener("click", (e) => {
@@ -291,4 +295,10 @@ logoutLink.addEventListener("click", (e) => {
     handleLogout();
 });
 
-document.addEventListener('DOMContentLoaded', loadBlogs);
+async function initialSetup() {
+    await fetchUserStatus();
+    await loadBlogs();
+}
+
+// Initialize the dashboard
+document.addEventListener('DOMContentLoaded', initialSetup);
